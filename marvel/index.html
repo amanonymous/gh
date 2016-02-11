@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<style>
+.containerStyle {
+	position:block;
+	position:absolute;
+	top:25%;
+	left:0%;
+	width:100%;
+	height:75%;
+	background-color:#004C80;
+	overflow:scroll;
+}
+.textDivStyle {
+    display: block;
+    position: relative;
+    top: 0%;
+    left: 0%;
+    height: 10%;
+    background-color: #004C80;
+}
+.imgDivStyle {
+	display:block;
+	position:relative;
+	top:0%;
+	left:0%;
+	background-color:#004C80;
+}
+.logoStyle {
+	display:block;
+	position:absolute;
+	top:0%;
+	left:0%;
+	width:100%;
+	height:15%;
+	background-color:#004C80;
+	overflow:scroll;
+}
+.spanStyle {
+    font-size: 65px;
+    color: white;
+    margin-top: 50px;
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    height: 100%;
+    font-weight: 600;
+}
+.seriesLayoutStyle{
+    display: block;
+    position: absolute;
+    top: 15%;
+    left: 0%;
+    width: 100%;
+    height: 85%;
+    background-color: #E92126;
+    overflow: scroll;
+}
+.seriesImageStyle{
+	display:block;
+	position:absolute;
+	left:0%;
+	width:100%;
+	height:50%;
+	background-color:#004C80;
+	overflow:scroll;
+}
+.seriesSpanStyle {
+    font-size: 65px;
+    color: white;
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    height: 5%;
+    font-weight: 600;
+}
+.charImageStyle{
+	display: block;
+    position: absolute;
+    left: 0%;
+    width: 100%;
+    height: 95%;
+    top: 5%;
+    background-color: #004C80;
+    overflow: scroll;
+}
+</style>
+
+<body onload="InitHome()">
+
+<!-- <button onclick="myFunction()">Click me</button> -->
+
+<div id='logoDiv' class="logoStyle">
+	<img src="marvel.png" style="position:absolute;display:block;top:0%;left:0%;width:100%;height:100%">
+</div>
+<div style="position:absolute;display:block;top:15%;left:0%;width:100%;height:10%;background-color: #004C80;">
+    <img src="dice.png" id="randButton" onclick="LoadRandomChar()" style="position:absolute;display:block;top:0%;left:0%;width:20%;height:100%">
+	<input id="searchtextbox"style="position:absolute;display:block;top: 15%;left:32%;width: 50%;height: 60%;background-color: rgb(0, 76, 128);font-size: 40px;color: white;border-style: solid;border-color: #C94112;border-radius: 100px;text-align: center;border-width: 4px;">
+	<img src="search.png" onclick="SearchByName()" style="position:absolute; display:block; top: 16%; left: 85%; width: 10%; height: auto; opacity: 0.9; ">
+  </div>
+<div id="containerdiv" class="containerStyle">
+</div>
+<script>
+	var gViewPortWidth, gViewPortHeight;
+	var gOffset = 0;
+	var htmlContent;
+	if (typeof window.innerWidth != 'undefined') 
+	{
+   		gViewPortWidth = window.innerWidth;
+   		gViewPortHeight = window.innerHeight;   		
+ 	}
+ 	function InitHome()
+ 	{
+ 		document.addEventListener('touchstart', handleTouchStart, false);        
+		document.addEventListener('touchmove', handleTouchMove, false);
+ 		LoadContainer(5, 0);
+ 	}
+
+
+	var xDown = null;                                                        
+	var yDown = null;     
+	                                                   
+
+	function handleTouchStart(evt) 
+	{                                         
+	    xDown = evt.touches[0].clientX;                                      
+	    yDown = evt.touches[0].clientY;                                      
+	};                                                
+
+	function handleTouchMove(evt) 
+	{
+	    if ( ! xDown || ! yDown ) 
+	    {
+	        return;
+	    }
+
+	    var xUp = evt.touches[0].clientX;                                    
+	    var yUp = evt.touches[0].clientY;
+
+	    var xDiff = xDown - xUp;
+	    var yDiff = yDown - yUp;
+
+	    if ( Math.abs( xDiff ) > Math.abs( yDiff ) )
+	     {/*most significant*/
+	        if ( xDiff > 0 ) 
+	        {
+	            /* left swipe */ 
+	            (gOffset-5)<0?(gOffset=0):(gOffset-=5);
+	            LoadContainer(5, gOffset);
+	        } else 
+	        {
+	            /* right swipe */
+	            gOffset+=5;
+	            LoadContainer(5, gOffset);
+	        }                       
+	    } 
+	    else 
+	    {
+	        if ( yDiff > 0 )
+	        {
+	            /* up swipe */ 
+	            /* Do Nothing */
+	        } 
+	        else 
+	        { 
+	            /* down swipe */
+	            /* Do Nothing */
+	        }                                                                 
+	    }
+	    /* reset values */
+	    xDown = null;
+	    yDown = null;                                             
+	};
+ 	function LoadRandomChar()
+	{
+		var randButton=document.getElementById('randButton');
+		var container=document.getElementById('containerdiv');
+		var src=randButton.src;
+		if(src && src.indexOf("dice.png") != -1)
+		{			
+			htmlContent = container.innerHTML;
+			randButton.src="home.png";
+			randButton.style.width="17%";
+			var xhr = new XMLHttpRequest();
+			xhr.open("GET", "http://rolz.org/api/?1d1000.json", false);
+			xhr.send();
+			var obj=xhr.response;
+			if(obj && obj.length)
+			{
+				var response = JSON.parse(obj);
+				dd=response.details.replace(/\+/g, '*');
+				var rand=eval(dd);
+				LoadContainer(1, rand);
+			}
+		}
+		else
+		{
+			randButton.src="dice.png";
+			randButton.style.width="20%";
+			container.innerHTML=htmlContent;
+			htmlContent="";
+		}
+	}
+	function LoadContainer(limit, offset) 
+	{
+		var container=document.getElementById('containerdiv');
+		container.innerHTML="";
+		var textArr=[];
+		var imgArr=[];
+		var iconArr=[];
+
+		if(!limit)
+			limit=5;
+		if(!offset)
+			offset=0;
+			
+	    var xhr = new XMLHttpRequest();
+		xhr.open("GET", "http://gateway.marvel.com/v1/public/characters?limit="+limit+"&offset=" + offset + "&apikey=9bfef6bf400f13db9c47ca5f5b5dae20&ts=1&hash=237f4666ef81e5f95a290ec20efe3202", false);
+		xhr.send();
+
+		var obj=xhr.response;
+		if(obj && obj.length)
+		{
+			response = JSON.parse(obj);
+			for( var i=0; i<response.data.results.length; i++)
+			{
+				var node=response.data.results[i];
+
+				var textNode = document.createTextNode(node.name);
+	    		var span = document.createElement('span');
+	    		span.className="spanStyle";
+				span.appendChild(textNode);
+				textArr.push(span);
+	    		
+	    		var img = new Image();
+	    		img.style.display='relative';
+				
+				var thumbnailDetails=node.thumbnail;
+				img.src = thumbnailDetails.path+"."+thumbnailDetails.extension;
+				img.onload = function() 
+				{
+				   	this.style.width = '79.5%';
+				    this.style.height = '100%';
+				}
+				imgArr.push(img);
+			}
+		}
+		console.log(xhr.status);
+		console.log(xhr.statusText);		
+
+		for(var i=0; i<imgArr.length; i++)
+		{
+			var textDiv=document.createElement('div');
+			textDiv.className='textDivStyle';
+			textDiv.appendChild(textArr[i]);
+			container.appendChild(textDiv);
+
+			var imgDiv=document.createElement('div');
+			imgDiv.className='imgDivStyle';
+			imgDiv.style.height = gViewPortHeight*0.675 + "px";
+			imgDiv.style.width = gViewPortWidth*0.75;
+			var img=imgArr[i];
+			imgDiv.appendChild(img);
+
+			var detailsDiv = GetDetailsDiv(imgDiv, i);
+			var aboutButon = GetAboutButton();
+			var seriesButton = GetSeriesButton(i);
+			var comicsButton = GetComicsButton(i);
+			var storiesButton = GetStoriesButton(i);
+
+			imgDiv.appendChild(seriesButton);
+			imgDiv.appendChild(aboutButon);
+			imgDiv.appendChild(comicsButton);
+			imgDiv.appendChild(storiesButton);
+			imgDiv.appendChild(detailsDiv);
+
+			container.appendChild(imgDiv);
+		}
+	}
+	
+	
+	function GetDetailsDiv(imgDiv, index)
+	{
+		var parentDiv=imgDiv;
+		var detailsDiv = document.createElement("div"); 
+		detailsDiv.style.display="block";
+		detailsDiv.style.position="absolute";
+		detailsDiv.style.top="0%";
+		detailsDiv.style.left="0%";
+		detailsDiv.style.height="100%";
+		detailsDiv.style.width="100%";
+		detailsDiv.style.backgroundColor="#002240";
+		detailsDiv.style.backgroundImage = "url('bg2.jpg')";
+		detailsDiv.style.backgroundRepeat='no-repeat';
+		detailsDiv.style.backgroundSize="100% 100%";
+
+		var desc=response.data.results[index].description;
+		if(!desc || !desc.length)
+			desc="Description not available in server :("
+		var textNode = document.createTextNode(desc);
+		var span = document.createElement('span');
+		span.style.fontSize = "55px";
+		span.style.color='#FF1A1A';
+		span.style.marginTop='15px';
+		span.style.position='absolute';
+		span.appendChild(textNode);
+		detailsDiv.appendChild(span);
+		detailsDiv.style.opacity="0";
+		detailsDiv.style.display='none';
+
+		var okButton=GetOkButton(detailsDiv);
+		detailsDiv.appendChild(okButton);
+
+		return detailsDiv;
+	}
+	function GetAboutButton()
+	{
+		var aboutButon = document.createElement("input"); 
+		aboutButon.src = "about.png";
+		aboutButon.onclick = function(evt)
+		{
+			var abButton=event.currentTarget;
+			var parentElement=abButton.parentElement;
+			var detailsDiv=parentElement.getElementsByTagName('div')[0];
+			detailsDiv.style.opacity="1.0";
+			detailsDiv.style.display='block';
+		};
+		aboutButon.type = "image";
+		aboutButon.style.display="block";
+		aboutButon.style.position="absolute";
+		aboutButon.style.top="0%";
+		aboutButon.style.left="80%";
+		aboutButon.style.height="25%";
+		aboutButon.style.width="20%";
+		return aboutButon;
+	}
+	function GetSeriesButton(index)
+	{
+		var seriesButton = document.createElement("input"); 
+		seriesButton.src = "seriresRW.png"; 
+		seriesButton.onclick = function()
+		{
+			ConstructSeries(response.data.results[index].series);
+		};
+		seriesButton.type = "image";
+		seriesButton.style.display="block";
+		seriesButton.style.position="absolute";
+		seriesButton.style.top="25%";
+		seriesButton.style.left="80%";
+		seriesButton.style.height="25%";
+		seriesButton.style.width="20%";
+		return seriesButton;
+	}
+	function GetStoriesButton(index)
+	{
+		var storiesButton = document.createElement("input"); 
+		storiesButton.src = "storiesRW.png"; 
+		storiesButton.onclick = function()
+		{
+			ConstructSeries(response.data.results[index].stories);
+		};
+		storiesButton.type = "image";
+		storiesButton.style.display="block";
+		storiesButton.style.position="absolute";
+		storiesButton.style.top="75%";
+		storiesButton.style.left="80%";
+		storiesButton.style.height="25%";
+		storiesButton.style.width="20%";
+		return storiesButton;
+	}
+	function GetComicsButton(index)
+	{
+		var comicsButton = document.createElement("input"); 
+		comicsButton.src = "comicsRW.png"; 
+		comicsButton.onclick = function()
+		{
+			ConstructSeries(response.data.results[index].comics);
+		};
+		comicsButton.type = "image";
+		comicsButton.style.display="block";
+		comicsButton.style.position="absolute";
+		comicsButton.style.top="50%";
+		comicsButton.style.left="80%";
+		comicsButton.style.height="25%";
+		comicsButton.style.width="20%";
+		return comicsButton;
+	}
+	function GetOkButton(parentDiv)
+	{
+		var button=document.createElement('button');
+		button.style.display="block";
+		button.style.position="absolute";
+		button.style.top="90%";
+		button.style.left="25%";
+		button.style.height="10%";
+		button.style.width="50%";
+		button.style.backgroundColor="#002240";
+		button.style.backgroundImage = "url('ok.png')";
+		button.style.backgroundRepeat='no-repeat';
+		button.style.backgroundSize="100% 100%";
+		button.onclick = function(event)
+		{
+			var detailsDiv=event.currentTarget.parentElement;
+			detailsDiv.style.opacity="0.0";
+			detailsDiv.style.display='none';
+		};
+		return button;
+	}
+	function ConstructSeries(seriesObj)
+	{
+		if(!seriesObj)
+			return;
+		var currentContainer = document.getElementById('containerdiv');
+		currentContainer.style.opacity="0.0";
+		var seriesContainer = document.createElement('div');
+		seriesContainer.className = "seriesLayoutStyle";
+		document.body.appendChild(seriesContainer);
+		var items=seriesObj.items;
+		var invalidCount=0;
+		for(var i=0; i<items.length; i++)
+		{
+			var item=items[i];
+			var xhr = new XMLHttpRequest();
+			try
+			{
+				xhr.open("GET", item.resourceURI + "?apikey=9bfef6bf400f13db9c47ca5f5b5dae20&ts=1&hash=237f4666ef81e5f95a290ec20efe3202", false);
+				xhr.send();
+			}
+			catch( e )
+			{
+				
+			}
+			var seriesName=item.name;
+
+			var textTop=(i-invalidCount)*55;
+
+			var result = JSON.parse(xhr.response);
+			if(result.code == 404)
+			{
+				invalidCount++;
+				continue;
+			}
+
+			var textNode = document.createTextNode(seriesName);
+		    var span = document.createElement('span');
+		    span.className="seriesSpanStyle";
+		    span.style.top=textTop+"%";
+			span.appendChild(textNode);
+			seriesContainer.appendChild(span);
+
+			if(result && result.data && result.data.results)
+			{
+				var thumbnail = result.data.results[0].thumbnail;
+				var thumbnailSrc;
+				if(thumbnail)
+				{
+					thumbnailSrc=thumbnail.path + "." + thumbnail.extension;
+				}
+				else
+				{
+					thumbnailSrc="image_not_available.jpg";
+				}
+				var img = new Image();
+				img.className="seriesImageStyle";
+				img.style.top = (textTop+5) + "%";
+				img.src=thumbnailSrc;
+				seriesContainer.appendChild(img);
+			}
+		}
+
+		var button=document.createElement('button');
+		button.style.display="block";
+		button.style.position="absolute";
+		button.style.top=((i-invalidCount)*55)+"%";
+		button.style.left="33%";
+		button.style.height="5%";
+		button.style.width="30%";
+		button.style.backgroundColor="#002240";
+		button.style.backgroundImage = "url('ok.png')";
+		button.style.backgroundRepeat='no-repeat';
+		button.style.backgroundSize="100% 100%";
+		button.onclick = function(event)
+		{
+			var parentDiv=event.currentTarget.parentElement;
+			parentDiv.parentElement.removeChild(parentDiv);
+			var currentContainer = document.getElementById('containerdiv');
+			currentContainer.style.opacity="1.0";
+		};
+		seriesContainer.appendChild(button);
+	}
+	function SearchByName()
+	{
+		var currentContainer = document.getElementById('containerdiv');
+		currentContainer.style.opacity="0.0";
+		var searchContainer = document.createElement('div');
+		searchContainer.className = "seriesLayoutStyle";
+		document.body.appendChild(searchContainer);
+		var searchtextbox=document.getElementById('searchtextbox');
+		var seriesName=searchtextbox.value;
+		var xhr = new XMLHttpRequest();
+		xhr.open("GET", "http://gateway.marvel.com/v1/public/characters?name=" +seriesName+ "&apikey=9bfef6bf400f13db9c47ca5f5b5dae20&ts=1&hash=237f4666ef81e5f95a290ec20efe3202", false);
+		xhr.send();
+		var i=0;
+		var textTop=i*55;
+		var textNode = document.createTextNode(seriesName);
+	    var span = document.createElement('span');
+	    span.className="seriesSpanStyle";
+	    span.style.top=textTop+"%";
+		span.appendChild(textNode);
+		searchContainer.appendChild(span);
+
+		var result = JSON.parse(xhr.response);
+		var thumbnail = result.data.results[0].thumbnail;
+		var thumbnailSrc;
+		if(thumbnail)
+		{
+			thumbnailSrc=thumbnail.path + "." + thumbnail.extension;
+		}
+		else
+		{
+			thumbnailSrc="image_not_available.jpg";
+		}
+		var img = new Image();
+		img.className="charImageStyle";
+		img.src=thumbnailSrc;
+		searchContainer.appendChild(img);
+		var button=document.createElement('button');
+		button.style.display="block";
+		button.style.position="absolute";
+		button.style.top="95%";
+		button.style.left="33%";
+		button.style.height="5%";
+		button.style.width="30%";
+		button.style.backgroundColor="#002240";
+		button.style.backgroundImage = "url('ok.png')";
+		button.style.backgroundRepeat='no-repeat';
+		button.style.backgroundSize="100% 100%";
+		button.onclick = function(event)
+		{
+			var parentDiv=event.currentTarget.parentElement;
+			parentDiv.parentElement.removeChild(parentDiv);
+			var currentContainer = document.getElementById('containerdiv');
+			currentContainer.style.opacity="1.0";
+		};
+		searchContainer.appendChild(button);
+	}
+
+</script>
+</body>
+</head>
+</html>
